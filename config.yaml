@@ -40,23 +40,23 @@ params:
     quicklinks:
       - alt: HTML5 UP
         text: 'Design: '
-        url: https://www.html5up.net
+        url: http://www.html5up.net
     social:
 #      - icon: fa-twitter
 #        label: Twitter
-#        url: https://www.twitter.com
+#        url: http://www.twitter.com
 #      - icon: fa-facebook
 #        label: Facebook
-#        url: https://www.facebook.com
+#        url: http://www.facebook.com
       - icon: fa-instagram
         label: Instagram
-        url: https://www.instagram.com/aadrian_woo/
+        url: http://www.instagram.com/aadrian_woo/
       - icon: fa-github
         label: GitHub
-        url: https://github.com/AdrianWooo
+        url: http://github.com/AdrianWooo
       - icon: fa-linkedin
         label: LinkedIn
-        url: https://www.linkedin.com/in/wei-wu-a4b238200/
+        url: http://www.linkedin.com/in/wei-wu-a4b238200/
   image: ''
   name: Your name
   navigation:
