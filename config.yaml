@@ -14,7 +14,7 @@ params:
   blog: {}
   contact:
     address:
-      - city: London
+      - city: London, W1U 6BR
         country: United Kingdom
         street: Bickenhall Street
         title: Address
@@ -90,8 +90,8 @@ params:
         title: Career
         url: blogs/Career
       - image: pic03.jpg
-        subtitle: Project
-        title: Graduate Prediction
+        subtitle: Graduate Prediction
+        title: Project
         url: blogs/project_graduate
 #      - image: pic04.jpg
 #        subtitle: 
