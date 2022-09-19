@@ -1,7 +1,7 @@
 baseURL: http://wei-adrian-wu.netlify.app/
 languageCode: en-us
 title: Portfolio website for Wei Wu
-theme: Portfolio
+theme: forty
 googleAnalytics: ''
 disqusShortname: ''
 params:
