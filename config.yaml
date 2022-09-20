@@ -76,8 +76,8 @@ params:
 #      - name: Elements
 #        url: elements.html
     menu: Menu
-    subtitle: By HTML5 Up
-    title: Adrian
+    subtitle: Personal Website
+    title: Adrian Wu
   tiles:
     enable: yes
     showcase:
