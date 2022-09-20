@@ -62,7 +62,7 @@ knitr::opts_chunk$set(
 
 Use the **summary()** in R to see the general situation of the data set.
 ```{r}
-rawData <- read.csv("Admission_Predict_Ver1.1.csv")
+rawData <- read.csv(here::here("data","Admission_Predict_Ver1.1.csv"))
 Admission <- rawData[, -1]
 summary(Admission)
 set.seed(42)
