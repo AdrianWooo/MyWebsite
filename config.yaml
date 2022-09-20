@@ -84,11 +84,11 @@ params:
       - image: lbs.jpg
 #        subtitle: Ipsum Dolor Sit Amet
         title: Academic Background
-        url: blogs/academic_background
-      - image: pic02.jpg
+        url: blogs/ab
+      - image: pic06.jpg
 #        subtitle: Career
         title: Career
-        url: blogs/Career
+        url: blogs/career
       - image: pic03.jpg
         subtitle: Graduate Prediction
         title: Project

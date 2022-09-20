@@ -1,0 +1,167 @@
+---
+categories:  
+- ""    #the front matter should be like the one found in, e.g., blog2.md. It cannot be like the normal Rmd we used
+- ""
+date: "2021-09-30"
+description: UCLA Graduate Prediction from Indian Perspective # the title that will show up once someone gets to this page
+draft: false
+image: spices.jpg # save picture in \static\img\blogs. Acceptable formats= jpg, jpeg, or png . Your iPhone pics wont work
+
+keywords: ""
+slug: project_graduate # slug is the shorthand URL address... no spaces plz
+title: Graduate Prediction
+---
+  
+
+
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+# Introduction
+
+# Material and Methods
+
+## 1. Material
+
+## 2. Data Description
+
+***GRE Score***: The score of GRE exam (out of 340) 
+
+***TOEFL Score***: The score of TOEFL exam (out of 120) 
+
+***University Rating***: The rating of the student's university (out of 5) 
+
+***SOP***: The score of Statement of Purpose (out of 5) 
+
+***LOR***: Letter of Recommendation Strength (out of 5) 
+
+***cGPA***: Undergraduate Cumulative Grade Point Average (out of 10) 
+
+***Research***: Whether the student have participated in research (yes 1, no 0) 
+
+***Chance of Admit***: The probability that the student will be admitted (range from 0 to 1) 
+
+## 3. Data Cleaning
+
+### 3.1 Data Summary of all data
+
+Use the **summary()** in R to see the general situation of the data set.
+```{r}
+rawData <- read.csv("Admission_Predict_Ver1.1.csv")
+Admission <- rawData[, -1]
+summary(Admission)
+set.seed(42)
+```
+
+Noted that, there is not any invalid data that is out of range. For example, all the GRE scores are out of 340 and all the TOEFL scores are out of 120.
+
+### 3.2 Missing Value
+
+Write a function ***check_NA()*** to check whether there exist null or missing value in the data. Return **TRUE** if there is not missing value, otherwise **FALSE**.
+
+```{r}
+nameslist <- names(Admission)
+check_NA <- function(data){
+  flag <- TRUE
+  for (name in nameslist) {
+    if(sum(is.na(Admission$name)) != 0) flag <- FALSE
+  }
+  flag
+}
+check_NA(Admission)
+```
+Result above shows that there is not any missing value in the data set we use, which saves us time for dealing with missing data.
+
+### 3.3 Outliers
+
+#### 3.3.1 Outliers Detection
+
+We considered three methods to detect outliers during the process of data cleaning: box-plot and histograms, the k-means clustering and the Local Outlier Factor (LOF for short). First, we considered the k-means clustering. Although it’s relatively easy to implement, yet we need to choose k manually, which would will cause errors. Additionally, K-means clustering may cluster the outliers. As for LOF, it is computationally expensive. During the pre-test, we find out that the time consumed of LOF is the most. In the meanwhile, this algorithm only detects the globular clusters. 
+
+After comparison, we chose the first method, box-plot and histograms, for the reason that it can show the outliers easily and clearly. It is also convenient for subsequent processing.
+
+Then we create a box-plot and histogram for each variable to visually see whether the outliers exist.
+
+```{r}
+outvalue <- c() 
+outindex <- c() 
+n_outvalue <- c() 
+pc_outvalue <- c()
+
+par(mfrow = c(2,4))
+for (i in 1:ncol(Admission)) {
+  name <- nameslist[i]
+  outvalue[[i]] <- boxplot(Admission[,i], main = name)$out 
+  hist(Admission[,i], col = 'deepskyblue1', main = name) 
+  outindex_i <- which(Admission[,i] %in% outvalue[[i]])
+  n_outvalue <- c(n_outvalue, length(outindex_i))
+  pc_outvalue <- c(pc_outvalue, length(outindex_i) / nrow(Admission)) 
+  outindex <- c(outindex, outindex_i)
+}
+```
+
+#### 3.3.2 Dealing with Outliers
+
+As the box-plot show above, it is obvious that there only exist few outliers. Considering we only have 500 samples, we choose the winsorization rather than dropping the outliers and the built-in function rm.outliers in the outliers package. First, we aim to keep more information of original data. Second, the built-in function rm.outliers simply subsitiude the outliers with mean or median, which may cause inaccuracy. 
+
+Then we use the winsorization to limit the value of each variable on its own until there is not outliers. We use a lower and/or upper bound for winsorization, which is extracted from the quantile of the percent of outliers.
+
+```{r}
+for (i in 1:ncol(Admission)) {
+  data_col_i <- Admission[, i]
+  bound <- quantile(data_col_i, probs = c(0.05, 0.95)) 
+  data_col_i[data_col_i < bound[1]] <- bound[1] 
+  data_col_i[data_col_i > bound[2]] <- bound[2] 
+  Admission[,i] <- data_col_i
+}
+```
+
+Show the box-plot agagin to see whether outliers still exist.
+
+```{r}
+outvalue <- c() 
+outindex <- c() 
+n_outvalue <- c() 
+pc_outvalue <- c()
+
+par(mfrow = c(2,4))
+for (i in 1:ncol(Admission)) {
+  name <- nameslist[i]
+  outvalue[[i]] <- boxplot(Admission[,i], main = name)$out 
+  hist(Admission[,i], col = 'deepskyblue1', main = name) 
+  outindex_i <- which(Admission[,i] %in% outvalue[[i]])
+  n_outvalue <- c(n_outvalue, length(outindex_i))
+  pc_outvalue <- c(pc_outvalue, length(outindex_i) / nrow(Admission)) 
+  outindex <- c(outindex, outindex_i)
+}
+```
+
+From the second appearence of the box-plot, it is obvious that the outliers have been dealt with. The data cleaning section is done.
+
+## 4. Data Partition
+
+We partitioned the data set into three parts: training data set, validation data set and test data set in proportion of 60%, 20% and 20% respectively.
+```{r}
+train.rows <- sample(rownames(Admission), dim(Admission)[1]*0.6)
+valid.rows <- sample(setdiff(rownames(Admission), train.rows), dim(Admission)[1]*0.2)
+test.rows <- setdiff(rownames(Admission), union(train.rows, valid.rows))
+
+Admission.train <- Admission[train.rows, ]
+Admission.valid <- Admission[valid.rows, ]
+Admission.test <- Admission[test.rows, ]
+```

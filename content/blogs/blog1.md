@@ -3,12 +3,21 @@ categories:
 - ""
 - ""
 date: "2017-10-31T21:28:43-05:00"
-description: ""
+description: "Academic Background"
 draft: false
-image: pic10.jpg
+image: lbs.jpg
 keywords: ""
-slug: ipsum
-title: Ipsum
+slug: ab
+title: Academic Background
 ---
 
-Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis tempus.
+## London Business School
+- Masters in Analytics and Management
+- 2022.08 - 2023.08, London, United Kingdom 
+
+## The Chinese University of Hong Kong(Shenzhen)
+- BSc in Statistics, Data Science Stream, Second Class Upper division
+- 2018.09 - 2022.07, Shenzhen, China
+- 2020-2022, Dean's List
+- Relevant courses: Regression Analysis, Optimization, Time Series, Bayesian Statistics
+- President of Basketball Association, 2019-2021
