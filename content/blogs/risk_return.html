@@ -1,0 +1,143 @@
+---
+categories:  
+- ""    #the front matter should be like the one found in, e.g., blog2.md. It cannot be like the normal Rmd we used
+- ""
+date: "2021-09-30"
+description: UCLA Graduate Prediction from Indian Perspective # the title that will show up once someone gets to this page
+draft: false
+image: spices.jpg # save picture in \static\img\blogs. Acceptable formats= jpg, jpeg, or png . Your iPhone pics wont work
+
+keywords: ""
+slug: project_graduate # slug is the shorthand URL address... no spaces plz
+title: Graduate Prediction
+---
+
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+</div>
+<div id="material-and-methods" class="section level1">
+<h1>Material and Methods</h1>
+<div id="material" class="section level2">
+<h2>1. Material</h2>
+</div>
+<div id="data-description" class="section level2">
+<h2>2. Data Description</h2>
+<p><strong><em>GRE Score</em></strong>: The score of GRE exam (out of 340)</p>
+<p><strong><em>TOEFL Score</em></strong>: The score of TOEFL exam (out of 120)</p>
+<p><strong><em>University Rating</em></strong>: The rating of the student’s university (out of 5)</p>
+<p><strong><em>SOP</em></strong>: The score of Statement of Purpose (out of 5)</p>
+<p><strong><em>LOR</em></strong>: Letter of Recommendation Strength (out of 5)</p>
+<p><strong><em>cGPA</em></strong>: Undergraduate Cumulative Grade Point Average (out of 10)</p>
+<p><strong><em>Research</em></strong>: Whether the student have participated in research (yes 1, no 0)</p>
+<p><strong><em>Chance of Admit</em></strong>: The probability that the student will be admitted (range from 0 to 1)</p>
+</div>
+<div id="data-cleaning" class="section level2">
+<h2>3. Data Cleaning</h2>
+<div id="data-summary-of-all-data" class="section level3">
+<h3>3.1 Data Summary of all data</h3>
+<p>Use the <strong>summary()</strong> in R to see the general situation of the data set.</p>
+<pre class="r"><code>rawData &lt;- read.csv(here::here(&quot;data&quot;,&quot;Admission_Predict_Ver1.1.csv&quot;))
+Admission &lt;- rawData[, -1]
+summary(Admission)</code></pre>
+<pre><code>##    GRE.Score    TOEFL.Score  University.Rating      SOP            LOR      
+##  Min.   :290   Min.   : 92   Min.   :1.00      Min.   :1.00   Min.   :1.00  
+##  1st Qu.:308   1st Qu.:103   1st Qu.:2.00      1st Qu.:2.50   1st Qu.:3.00  
+##  Median :317   Median :107   Median :3.00      Median :3.50   Median :3.50  
+##  Mean   :316   Mean   :107   Mean   :3.11      Mean   :3.37   Mean   :3.48  
+##  3rd Qu.:325   3rd Qu.:112   3rd Qu.:4.00      3rd Qu.:4.00   3rd Qu.:4.00  
+##  Max.   :340   Max.   :120   Max.   :5.00      Max.   :5.00   Max.   :5.00  
+##       CGPA         Research    Chance.of.Admit
+##  Min.   :6.80   Min.   :0.00   Min.   :0.340  
+##  1st Qu.:8.13   1st Qu.:0.00   1st Qu.:0.630  
+##  Median :8.56   Median :1.00   Median :0.720  
+##  Mean   :8.58   Mean   :0.56   Mean   :0.722  
+##  3rd Qu.:9.04   3rd Qu.:1.00   3rd Qu.:0.820  
+##  Max.   :9.92   Max.   :1.00   Max.   :0.970</code></pre>
+<pre class="r"><code>set.seed(42)</code></pre>
+<p>Noted that, there is not any invalid data that is out of range. For example, all the GRE scores are out of 340 and all the TOEFL scores are out of 120.</p>
+</div>
+<div id="missing-value" class="section level3">
+<h3>3.2 Missing Value</h3>
+<p>Write a function <strong><em>check_NA()</em></strong> to check whether there exist null or missing value in the data. Return <strong>TRUE</strong> if there is not missing value, otherwise <strong>FALSE</strong>.</p>
+<pre class="r"><code>nameslist &lt;- names(Admission)
+check_NA &lt;- function(data){
+  flag &lt;- TRUE
+  for (name in nameslist) {
+    if(sum(is.na(Admission$name)) != 0) flag &lt;- FALSE
+  }
+  flag
+}
+check_NA(Admission)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Result above shows that there is not any missing value in the data set we use, which saves us time for dealing with missing data.</p>
+</div>
+<div id="outliers" class="section level3">
+<h3>3.3 Outliers</h3>
+<div id="outliers-detection" class="section level4">
+<h4>3.3.1 Outliers Detection</h4>
+<p>We considered three methods to detect outliers during the process of data cleaning: box-plot and histograms, the k-means clustering and the Local Outlier Factor (LOF for short). First, we considered the k-means clustering. Although it’s relatively easy to implement, yet we need to choose k manually, which would will cause errors. Additionally, K-means clustering may cluster the outliers. As for LOF, it is computationally expensive. During the pre-test, we find out that the time consumed of LOF is the most. In the meanwhile, this algorithm only detects the globular clusters.</p>
+<p>After comparison, we chose the first method, box-plot and histograms, for the reason that it can show the outliers easily and clearly. It is also convenient for subsequent processing.</p>
+<p>Then we create a box-plot and histogram for each variable to visually see whether the outliers exist.</p>
+<pre class="r"><code>outvalue &lt;- c() 
+outindex &lt;- c() 
+n_outvalue &lt;- c() 
+pc_outvalue &lt;- c()
+
+par(mfrow = c(2,4))
+for (i in 1:ncol(Admission)) {
+  name &lt;- nameslist[i]
+  outvalue[[i]] &lt;- boxplot(Admission[,i], main = name)$out 
+  hist(Admission[,i], col = &#39;deepskyblue1&#39;, main = name) 
+  outindex_i &lt;- which(Admission[,i] %in% outvalue[[i]])
+  n_outvalue &lt;- c(n_outvalue, length(outindex_i))
+  pc_outvalue &lt;- c(pc_outvalue, length(outindex_i) / nrow(Admission)) 
+  outindex &lt;- c(outindex, outindex_i)
+}</code></pre>
+<p><img src="/blogs/risk_return_files/figure-html/unnamed-chunk-3-1.png" width="648" style="display: block; margin: auto;" /><img src="/blogs/risk_return_files/figure-html/unnamed-chunk-3-2.png" width="648" style="display: block; margin: auto;" /></p>
+</div>
+<div id="dealing-with-outliers" class="section level4">
+<h4>3.3.2 Dealing with Outliers</h4>
+<p>As the box-plot show above, it is obvious that there only exist few outliers. Considering we only have 500 samples, we choose the winsorization rather than dropping the outliers and the built-in function rm.outliers in the outliers package. First, we aim to keep more information of original data. Second, the built-in function rm.outliers simply subsitiude the outliers with mean or median, which may cause inaccuracy.</p>
+<p>Then we use the winsorization to limit the value of each variable on its own until there is not outliers. We use a lower and/or upper bound for winsorization, which is extracted from the quantile of the percent of outliers.</p>
+<pre class="r"><code>for (i in 1:ncol(Admission)) {
+  data_col_i &lt;- Admission[, i]
+  bound &lt;- quantile(data_col_i, probs = c(0.05, 0.95)) 
+  data_col_i[data_col_i &lt; bound[1]] &lt;- bound[1] 
+  data_col_i[data_col_i &gt; bound[2]] &lt;- bound[2] 
+  Admission[,i] &lt;- data_col_i
+}</code></pre>
+<p>Show the box-plot agagin to see whether outliers still exist.</p>
+<pre class="r"><code>outvalue &lt;- c() 
+outindex &lt;- c() 
+n_outvalue &lt;- c() 
+pc_outvalue &lt;- c()
+
+par(mfrow = c(2,4))
+for (i in 1:ncol(Admission)) {
+  name &lt;- nameslist[i]
+  outvalue[[i]] &lt;- boxplot(Admission[,i], main = name)$out 
+  hist(Admission[,i], col = &#39;deepskyblue1&#39;, main = name) 
+  outindex_i &lt;- which(Admission[,i] %in% outvalue[[i]])
+  n_outvalue &lt;- c(n_outvalue, length(outindex_i))
+  pc_outvalue &lt;- c(pc_outvalue, length(outindex_i) / nrow(Admission)) 
+  outindex &lt;- c(outindex, outindex_i)
+}</code></pre>
+<p><img src="/blogs/risk_return_files/figure-html/unnamed-chunk-5-1.png" width="648" style="display: block; margin: auto;" /><img src="/blogs/risk_return_files/figure-html/unnamed-chunk-5-2.png" width="648" style="display: block; margin: auto;" /></p>
+<p>From the second appearence of the box-plot, it is obvious that the outliers have been dealt with. The data cleaning section is done.</p>
+</div>
+</div>
+</div>
+<div id="data-partition" class="section level2">
+<h2>4. Data Partition</h2>
+<p>We partitioned the data set into three parts: training data set, validation data set and test data set in proportion of 60%, 20% and 20% respectively.</p>
+<pre class="r"><code>train.rows &lt;- sample(rownames(Admission), dim(Admission)[1]*0.6)
+valid.rows &lt;- sample(setdiff(rownames(Admission), train.rows), dim(Admission)[1]*0.2)
+test.rows &lt;- setdiff(rownames(Admission), union(train.rows, valid.rows))
+
+Admission.train &lt;- Admission[train.rows, ]
+Admission.valid &lt;- Admission[valid.rows, ]
+Admission.test &lt;- Admission[test.rows, ]</code></pre>
+</div>
+</div>
